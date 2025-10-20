@@ -1,0 +1,2 @@
+scrapy-fake-useragent == 1.4.4
+scrapy == 2.13.3
