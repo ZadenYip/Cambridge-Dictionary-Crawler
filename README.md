@@ -32,14 +32,3 @@ install the dependencies `pip install -r requirements.txt`<br>
 cd ./camb_dict_crawler
 scrapy crawl camb_dict_spider
 ```
-
-注意：由于使用了 scrapy-deltafetch 中间件，重复运行时不会重复爬取已经爬取过的页面。如果有需要重新爬取所有页面，可以删除与 camb_dict_crawler同级的文件夹 .scrapy下的 deltafetch 文件夹<br>
-Note: Since the scrapy-deltafetch middleware is used, pages that have already been crawled will not be re-crawled when run repeatedly. If you need to re-crawl all pages, you can delete the deltafetch folder under the .scrapy folder at the same level as camb_dict_crawler<br>
-
-## 项目说明（Project Description）
-使用 Scrapy 作为库进行爬取。scrapy-fake-useragent 和 scrapy-deltafetch 为中间件。<br>
-Using Scrapy as the library for crawling. scrapy-fake-useragent and scrapy-deltafetch are used as middlewares.<br>
-- scrapy-fake-useragent 用于随机生成 User-Agent，防止被反爬虫机制阻挡<br>
-- scrapy-fake-useragent is used to randomly generate User-Agent to prevent being blocked by anti-crawling mechanisms<br>
-- scrapy-deltafetch 用于避免重复下载已经爬取过的页面<br>
-- scrapy-deltafetch is used to avoid re-downloading pages that have already been crawled<br>
