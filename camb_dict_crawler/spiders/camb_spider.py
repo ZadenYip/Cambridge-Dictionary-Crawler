@@ -1,6 +1,6 @@
 from pathlib import Path
 from scrapy.spiders import SitemapSpider
-from camb_dict_crawler.items import WordItem, Definition, Bilingual
+from camb_dict_crawler.items import WordItem, Definition, Bilingual, ErrorItem
 import time
 import scrapy
 import scrapy.http as s_http
@@ -22,7 +22,7 @@ class MySpider(SitemapSpider):
         这个节点下有词性信息，每个词性一个节点
         """
         part_of_speech_raw = entry_body_selector.css("div.posgram.dpos-g.hdib.lmr-5")
-        part_of_speech = part_of_speech_raw.xpath("string(.)").get().strip()
+        part_of_speech = part_of_speech_raw.xpath("string(.)").get("").strip()
         self.log(f"part_of_speech: {part_of_speech}")
         return part_of_speech
     
@@ -30,8 +30,8 @@ class MySpider(SitemapSpider):
         """
         entry_body_selector 参数对应 <div class="pr entry-body__el">  节点
         """
-        phonetics_uk = entry_body_selector.css("span.uk.dpron-i").css("span.pron.dpron").xpath("string(.)").get().strip()
-        phonetics_us = entry_body_selector.css("span.us.dpron-i").css("span.pron.dpron").xpath("string(.)").get().strip()
+        phonetics_uk = entry_body_selector.css("span.uk.dpron-i").css("span.pron.dpron").xpath("string(.)").get("").strip()
+        phonetics_us = entry_body_selector.css("span.us.dpron-i").css("span.pron.dpron").xpath("string(.)").get("").strip()
         self.log(f"phonetics_uk: {phonetics_uk}")
         self.log(f"phonetics_us: {phonetics_us}")
         return [phonetics_uk, phonetics_us]
@@ -42,11 +42,11 @@ class MySpider(SitemapSpider):
         """
         
         en_def_raw = selector.css("div.def.ddef_d.db")
-        en_def = en_def_raw.xpath("string(.)").get().strip()
+        en_def = en_def_raw.xpath("string(.)").get("").strip()
         self.log(f"en_definition: {en_def}")
         
         zh_def_raw = selector.css("div.def-body.ddef_b").css("span.trans.dtrans.dtrans-se.break-cj")
-        zh_def = zh_def_raw.xpath("string(.)").get().strip()
+        zh_def = zh_def_raw.xpath("string(.)").get("").strip()
         self.log(f"zh_definition: {zh_def}")
         
         return Bilingual(en=en_def, zh=zh_def)
@@ -59,8 +59,8 @@ class MySpider(SitemapSpider):
         raw_examples = selector.css("div.def-body.ddef_b").css("div.examp.dexamp")
         
         for raw_example in raw_examples:
-            en_example = raw_example.css("span.eg.deg").xpath("string(.)").get().strip()
-            zh_example = raw_example.css("span.trans.dtrans.dtrans-se.hdb.break-cj").xpath("string(.)").get().strip()
+            en_example = raw_example.css("span.eg.deg").xpath("string(.)").get("").strip()
+            zh_example = raw_example.css("span.trans.dtrans.dtrans-se.hdb.break-cj").xpath("string(.)").get("").strip()
             self.log(f"en_example: {en_example}")
             self.log(f"zh_example: {zh_example}")
             examples.append(Bilingual(en=en_example, zh=zh_example))
@@ -75,7 +75,7 @@ class MySpider(SitemapSpider):
         raw_defs = sense_body_selector.css("div.def-block.ddef_block")
         for raw_def_entry in raw_defs:
             # CEFR 级别
-            cefr = raw_def_entry.css("span.def-info.ddef-info").xpath("string(.)").get().strip()
+            cefr = raw_def_entry.css("span.def-info.ddef-info").xpath("string(.)").get("").strip()
             self.log(f"cefr: {cefr}")
             
             # 定义（释义）
@@ -90,29 +90,34 @@ class MySpider(SitemapSpider):
           
     def parse(self, response: s_http.Response):
         self.log(f"response.status: {response.status}")
-        word = response.url.split("/")[-1]
+        url_word = response.url.split("/")[-1]
+        self.log(f"Processing url_word: {url_word}")
         if response.status != 200:
-            self.log(f"非200响应，跳过处理。url={response.url}")
-            return WordItem(word=word, part_of_speech="", phonetic_symbol=[], definitions=[])
+            self.log(f"Non-200 response, skipping url={response.url}")
+            return ErrorItem(url=response.url, error_message=f"fail to fetch page, status code: {response.status}")
+        try:
+            # 页面是首先是按照词性分块
+            for entry in response.css('div.pr.entry-body__el'):
                 
-        # 页面是首先是按照词性分块
-        for entry in response.css('div.pr.entry-body__el'):
-            
-            
-            # 获取词性
-            part_of_speech = self.get_part_of_speech(entry)
-            phonetic_symbol = self.get_phonetic_symbol(entry)
-            
-            # 获取该词性下的释义 + 例句
-            sense_body = entry.css('div.sense-body.dsense_b')
-            definitions = self.get_definitions(sense_body)
-            wordItem: WordItem = WordItem(
-                word=word,
-                part_of_speech=part_of_speech,
-                phonetic_symbol=phonetic_symbol,
-                definitions=definitions
-            )
-            
-            self.log(f"generated wordItem: {wordItem}")
-            yield wordItem
-        
+                # 获取 head_word
+                h_word = entry.css("span.hw.dhw").xpath("string(.)").get("").strip()
+                
+                # 获取词性
+                part_of_speech = self.get_part_of_speech(entry)
+                phonetic_symbol = self.get_phonetic_symbol(entry)
+                
+                # 获取该词性下的释义 + 例句
+                sense_body = entry.css('div.sense-body.dsense_b')
+                definitions = self.get_definitions(sense_body)
+                wordItem: WordItem = WordItem(
+                    word=h_word,
+                    part_of_speech=part_of_speech,
+                    phonetic_symbol=phonetic_symbol,
+                    definitions=definitions
+                )
+                
+                self.log(f"generated wordItem: {wordItem}")
+                yield wordItem
+        except Exception as e:
+            self.log(f"exception occurred when processing word，url={response.url}，异常信息：{e}")
+            yield ErrorItem(url=response.url, error_message=f"exception occurred: {e}")
