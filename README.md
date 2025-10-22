@@ -1,4 +1,4 @@
-# 剑桥字典爬虫（Cambridge Dictionary crawler）**施工中（Work in progress）**
+# 剑桥字典爬虫（Cambridge Dictionary crawler）
 
 ## 使用方式（Usage）
 首先克隆仓库 `git clone XXX`<br>
