@@ -15,7 +15,7 @@ class Bilingual():
 @dataclass
 class Definition():
     """单个释义，包含CEFR等级、定义和例句"""
-    cefr: Optional[str]
+    cefr: str
     definition: Bilingual
     examples: list[Bilingual]
 
@@ -29,3 +29,9 @@ class WordItem():
     phonetic_symbol: list[str]
     # 释义列表
     definitions: list[Definition]
+    
+@dataclass
+class ErrorItem:
+    """用于记录爬取错误的 Item"""
+    url: str
+    error_message: str
