@@ -1,3 +1,4 @@
+from fake_useragent import UserAgent
 from pathlib import Path
 from scrapy.spiders import SitemapSpider
 from camb_dict_crawler.items import WordItem, Definition, Bilingual, ErrorItem
@@ -5,17 +6,46 @@ import time
 import scrapy
 import scrapy.http as s_http
 
-class MySpider(SitemapSpider):
+class Bilingual():
+    def __init__(self, en: str, zh: str):
+        self.en: str = en
+        self.zh: str = zh
+
+class Definition():
+    def __init__(self, cefr: str, definition: Bilingual, examples: list[Bilingual]):
+        self.cefr: str = cefr
+        self.definition: Bilingual = definition
+        self.examples: list[Bilingual] = examples
+
+class WordItem():
+
+    def __init__(self, word: str, part_of_speech: str, definitions: list[Definition]):
+        self.word: str = word
+        # pr entry-body__el
+        self.part_of_speech: str = part_of_speech
+        self.definitions: list[Definition] = definitions
+        
+
+class MySpider(scrapy.Spider):
     name = "camb_dict_spider"
-    sitemap_urls = [
-        "https://dictionary.cambridge.org/sitemap/english-chinese-simplified/sitemap1.xml",
-        "https://dictionary.cambridge.org/sitemap/english-chinese-simplified/sitemap2.xml",
-        "https://dictionary.cambridge.org/sitemap/english-chinese-simplified/sitemap3.xml",
-    ]
     
     def __init__(self, name = None, **kwargs):
         super().__init__(name, **kwargs)
+        self.user_agent: UserAgent = UserAgent()
 
+    def start_requests(self):
+        urls = [
+            "https://dictionary.cambridge.org/dictionary/english-chinese-simplified/paper",
+        ]
+
+        for url in urls:
+            yield scrapy.Request(
+                url,
+                headers={
+                    "User-Agent": self.user_agent.random
+                }
+            )
+    
     def get_part_of_speech(self, entry_body_selector: scrapy.Selector) -> str:
         """
         entry_body_selector 参数对应 <div class="pr entry-body__el">  节点
