@@ -214,3 +214,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+/camb_dict_crawler/error_items.jl
+/camb_dict_crawler/successful_items.jl
