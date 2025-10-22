@@ -3,14 +3,8 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
-from dataclasses import dataclass, field
-from typing import Optional
+import scrapy
 
-@dataclass
-class Bilingual():
-    """双语（英中）"""
-    en: str
-    zh: str
 
 @dataclass
 class Definition():

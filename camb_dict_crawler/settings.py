@@ -17,8 +17,6 @@ ADDONS = {}
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "camb_dict_crawler (+http://www.yourdomain.com)"
-from fake_useragent import UserAgent
-USER_AGENT = UserAgent().random
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -27,22 +25,6 @@ ROBOTSTXT_OBEY = True
 #CONCURRENT_REQUESTS = 16
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
 DOWNLOAD_DELAY = 1
-
-# 启用 deltafetch 避免重复下载页面
-# Enable deltafetch to avoid re-downloading pages
-SPIDER_MIDDLEWARES = {
-    'scrapy_deltafetch.DeltaFetch': 100
-}
-# deltafetch 配置
-# deltafetch configuration
-DELTAFETCH_ENABLED = True
-
-# 存储状态的目录
-# directory where to store state
-DELTAFETCH_DIR = "./deltafetch"
-# 是否在每次启动爬虫时重置 deltafetch 状态，清除已访问请求记录
-# reset the state, clearing out all seen requests
-DELTAFETCH_RESET = False
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
