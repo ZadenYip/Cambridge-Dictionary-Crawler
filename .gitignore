@@ -217,3 +217,4 @@ __marimo__/
 
 /camb_dict_crawler/error_items.jl
 /camb_dict_crawler/successful_items.jl
+/camb_dict_crawler/crawls/
