@@ -14,8 +14,8 @@ class CambDictCrawlerPipeline:
     
     def open_spider(self, spider):
         spider.log("CambDictCrawlerPipeline opened.")
-        self.success_exports_file = open("successful_items.jl", "wb")
-        self.failure_exports_file = open("error_items.jl", "wb")
+        self.success_exports_file = open("successful_items.jl", "ab")
+        self.failure_exports_file = open("error_items.jl", "ab")
         self.success_exports = JsonLinesItemExporter(self.success_exports_file, encoding="utf-8")
         self.failure_exports = JsonLinesItemExporter(self.failure_exports_file, encoding="utf-8")
 
