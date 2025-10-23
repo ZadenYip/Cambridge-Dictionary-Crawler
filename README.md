@@ -27,8 +27,11 @@ install the dependencies `pip install -r requirements.txt`<br>
 
 ```shell
 cd ./camb_dict_crawler
-scrapy crawl camb_dict_spider
+scrapy crawl camb_dict_spider -s JOBDIR=/crawls/camb_dict_crawl_job
 ```
+
+`scrapy crawl camb_dict_spider -s JOBDIR=/crawls/camb_dict_crawl_job` 用于启动爬虫，同时保存爬取进度到指定目录 `/crawls/camb_dict_crawl_job` 如果需要中途停止可以使用 Ctrl + C 停止，之后再次运行相同命令即可从上次停止的位置继续爬取<br>
+`scrapy crawl camb_dict_spider -s JOBDIR=/crawls/camb_dict_crawl_job` is used to start the crawler and save the crawling progress to the specified directory `/crawls/camb_dict_crawl_job`. If you need to stop in the middle, you can use Ctrl + C to stop, and then run the same command again to continue crawling from where it left off.<br>
 
 注意：由于使用了 scrapy-deltafetch 中间件，重复运行时不会重复爬取已经爬取过的页面。如果有需要重新爬取所有页面，可以删除与 camb_dict_crawler同级的文件夹 .scrapy下的 deltafetch 文件夹<br>
 Note: Since the scrapy-deltafetch middleware is used, pages that have already been crawled will not be re-crawled when run repeatedly. If you need to re-crawl all pages, you can delete the deltafetch folder under the .scrapy folder at the same level as camb_dict_crawler<br>
