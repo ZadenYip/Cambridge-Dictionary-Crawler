@@ -1,6 +1,7 @@
 from pathlib import Path
 from scrapy.spiders import SitemapSpider
 from camb_dict_crawler.items import WordItem, Definition, Bilingual, ErrorItem
+from scrapy.selector import SelectorList
 import time
 import scrapy
 import scrapy.http as s_http
@@ -94,10 +95,16 @@ class MySpider(SitemapSpider):
         self.log(f"Processing url_word: {url_word}")
         if response.status != 200:
             self.log(f"Non-200 response, skipping url={response.url}")
-            return ErrorItem(url=response.url, error_message=f"fail to fetch page, status code: {response.status}")
+            yield ErrorItem(url=response.url, error_message=f"fail to fetch page, status code: {response.status}")
+            return
         try:
             # 页面是首先是按照词性分块
-            for entry in response.css('div.pr.entry-body__el'):
+            selector_list: SelectorList = response.css('div.pr.entry-body__el')
+            if len(selector_list) == 0:
+                self.log(f"No entry-body__el found, skipping url={response.url}")
+                yield ErrorItem(url=response.url, error_message="unexpected page structure: no entry-body__el found")
+                return
+            for entry in selector_list:
                 
                 # 获取 head_word
                 h_word = entry.css("span.hw.dhw").xpath("string(.)").get("").strip()
