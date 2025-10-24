@@ -19,17 +19,17 @@ class MySpider(SitemapSpider):
 
     def get_part_of_speech(self, entry_body_selector: scrapy.Selector) -> str:
         """
-        entry_body_selector 参数对应 <div class="pr entry-body__el">  节点
+        entry_body_selector 参数对应 <div class="pr entry-body__el">  节点 或者 <div class="di-body"> 节点
         这个节点下有词性信息，每个词性一个节点
         """
-        part_of_speech_raw = entry_body_selector.css("div.posgram.dpos-g.hdib.lmr-5")
-        part_of_speech = part_of_speech_raw.xpath("string(.)").get("").strip()
+        part_of_speech_raw = entry_body_selector.css("span.pos.dpos")
+        part_of_speech = part_of_speech_raw.xpath("string(..)").get("").strip()
         self.log(f"part_of_speech: {part_of_speech}")
         return part_of_speech
     
     def get_phonetic_symbol(self, entry_body_selector: scrapy.Selector) -> list[str]:
         """
-        entry_body_selector 参数对应 <div class="pr entry-body__el">  节点
+        entry_body_selector 参数对应 <div class="pr entry-body__el">  节点 或者 <div class="di-body"> 节点
         """
         phonetics_uk = entry_body_selector.css("span.uk.dpron-i").css("span.pron.dpron").xpath("string(.)").get("").strip()
         phonetics_us = entry_body_selector.css("span.us.dpron-i").css("span.pron.dpron").xpath("string(.)").get("").strip()
@@ -70,7 +70,7 @@ class MySpider(SitemapSpider):
 
     def get_definitions(self, sense_body_selector: scrapy.Selector) -> list[Definition]:
         """
-        sense_body_selector 参数对应 <div class="sense-body dsense_b">  节点
+        sense_body_selector 参数对应 <div class="pr dsense">  节点
         """
         definitions: list[Definition] = []
         raw_defs = sense_body_selector.css("div.def-block.ddef_block")
@@ -87,8 +87,6 @@ class MySpider(SitemapSpider):
 
         return definitions
         
-        
-          
     def parse(self, response: s_http.Response):
         self.log(f"response.status: {response.status}")
         url_word = response.url.split("/")[-1]
@@ -101,20 +99,25 @@ class MySpider(SitemapSpider):
             # 页面是首先是按照词性分块
             selector_list: SelectorList = response.css('div.pr.entry-body__el')
             if len(selector_list) == 0:
-                self.log(f"No entry-body__el found, skipping url={response.url}")
-                yield ErrorItem(url=response.url, error_message="unexpected page structure: no entry-body__el found")
-                return
-            for entry in selector_list:
+                self.log(f"No entry-body__el found, trying di-body, url={response.url}")
+                selector_body_list: SelectorList = response.css('div.di-body')
+                if len(selector_body_list) == 0:
+                    self.log(f"No di-body found either, skipping url={response.url}")
+                    yield ErrorItem(url=response.url, error_message="no valid content found")
+                    return
+                else:
+                    selector_list = selector_body_list
                 
+            for entry in selector_list:
                 # 获取 head_word
-                h_word = entry.css("span.hw.dhw").xpath("string(.)").get("").strip()
+                h_word = entry.css("div.di-title").xpath("string(.)").get("").strip()
                 
                 # 获取词性
                 part_of_speech = self.get_part_of_speech(entry)
                 phonetic_symbol = self.get_phonetic_symbol(entry)
                 
                 # 获取该词性下的释义 + 例句
-                sense_body = entry.css('div.sense-body.dsense_b')
+                sense_body = entry.css('div.pr.dsense')
                 definitions = self.get_definitions(sense_body)
                 wordItem: WordItem = WordItem(
                     word=h_word,
