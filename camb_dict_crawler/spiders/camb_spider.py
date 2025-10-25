@@ -70,7 +70,7 @@ class MySpider(SitemapSpider):
 
     def get_definitions(self, sense_body_selector: scrapy.Selector) -> list[Definition]:
         """
-        sense_body_selector 参数对应 <div class="pr dsense">  节点
+        sense_body_selector 参数对应 <div class="pr dsense">  节点 或者直接是 div.def-block ddef_block 的父节点（phrase界面结构特殊处理）
         """
         definitions: list[Definition] = []
         raw_defs = sense_body_selector.css("div.def-block.ddef_block")
@@ -118,6 +118,9 @@ class MySpider(SitemapSpider):
                 
                 # 获取该词性下的释义 + 例句
                 sense_body = entry.css('div.pr.dsense')
+                if len(sense_body) == 0:
+                    # phrase 词性页面结构特殊处理
+                    sense_body = entry.css("div.def-block.ddef_block").xpath("..")  
                 definitions = self.get_definitions(sense_body)
                 wordItem: WordItem = WordItem(
                     word=h_word,
