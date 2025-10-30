@@ -51,10 +51,15 @@ If you need to restore to the interruption point of a certain backup, just put t
 
 Note: Since the scrapy-deltafetch middleware is used, pages that have already been crawled will not be re-crawled when run repeatedly. If you need to re-crawl all pages, you can delete the deltafetch folder under the .scrapy folder at the same level as camb_dict_crawler<br>
 
-### 导出文件
+### 导出文件（Exported Files）
 爬取结果会导出为 JSON Lines 格式的文件，分别为 successful_items.jl 和 error_items.jl，存放在 camb_dict_crawler 文件夹下<br>
 
 The crawling results will be exported as JSON Lines format files, namely successful_items.jl and error_items.jl, stored in the camb_dict_crawler folder<br>
+
+### 数据清洗（Data Cleaning）
+可以使用 data-cleaning/data_cleaning.ipynb 脚本对 successful_items.jl 进行清洗，生成 cleaned_items.csv 文件<br>
+
+You can use the data-cleaning/data_cleaning.ipynb script to clean successful_items.jl and generate cleaned_items.csv file<br>
 
 ## 项目说明（Project Description）
 使用 Scrapy 作为库进行爬取。scrapy-fake-useragent 和 scrapy-deltafetch 为中间件。<br>
